@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EmoBoba - Your Favourites</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        body {
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+        }
+        .page-container {
+            padding: 20px 40px;
+            padding-top: 100px;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 900;
+            color: #d44a2a;
+            margin-bottom: 10px;
+        }
+        .page-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #d44a2a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title svg {
+            width: 24px;
+            height: 24px;
+        }
+        .favourites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+        .favourite-card {
+            background: rgba(255, 248, 240, 0.9);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+        }
+        .favourite-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .favourite-card-image {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #ffbb98 0%, #ffd7a9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .favourite-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .favourite-card-placeholder {
+            font-size: 48px;
+        }
+        .favourite-card-content {
+            padding: 20px;
+        }
+        .favourite-card-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #d44a2a;
+            margin-bottom: 8px;
+        }
+        .favourite-card-meta {
+            font-size: 13px;
+            color: #888;
+        }
+        .favourite-card-price {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #d44a2a;
+            margin-top: 8px;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .remove-btn:hover {
+            background: #d44a2a;
+            color: white;
+        }
+        .remove-btn svg {
+            width: 18px;
+            height: 18px;
+            color: #d44a2a;
+        }
+        .remove-btn:hover svg {
+            color: white;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 248, 240, 0.5);
+            border-radius: 20px;
+        }
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .empty-state-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #d44a2a;
+            margin-bottom: 10px;
+        }
+        .empty-state-text {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .empty-state-btn {
+            display: inline-block;
+            background: #d44a2a;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            transition: transform 0.2s;
+        }
+        .empty-state-btn:hover {
+            transform: scale(1.05);
+        }
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 20px;
+                padding-top: 80px;
+            }
+            .page-title {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="{{ url_for('home') }}" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="8" cy="8" r="3"/>
+                    <circle cx="16" cy="8" r="3"/>
+                    <circle cx="12" cy="16" r="3"/>
+                </svg>
+                <span class="logo-text">EmoBoba</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+            <a href="{{ url_for('favourites') }}" class="nav-link active">Favourites</a>
+        </div>
+        <div class="nav-icons">
+            <button class="nav-icon-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+            </button>
+            <a href="{{ url_for('favourites') }}" class="nav-icon-btn" style="color: #d44a2a;">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </a>
+            {% if session.user_id %}
+            <a href="{{ url_for('logout') }}" class="nav-icon-btn" title="Logout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M20 21a8 8 0 1 0-16 0"/>
+                </svg>
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-icon-btn" title="Login">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M20 21a8 8 0 1 0-16 0"/>
+                </svg>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <h1 class="page-title">Your Favourites!</h1>
+        <p class="page-subtitle">All your saved dishes and restaurants in one place</p>
+
+        {% if favourite_dishes or favourite_restaurants %}
+            <!-- Favourite Dishes -->
+            {% if favourite_dishes %}
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                Saved Dishes
+            </h2>
+            <div class="favourites-grid">
+                {% for dish in favourite_dishes %}
+                <div class="favourite-card" id="dish-{{ dish.id }}">
+                    <button class="remove-btn" onclick="removeFavourite({{ dish.id }}, 'dish', event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <a href="{{ url_for('dish_detail', id=dish.id) }}" style="text-decoration: none; color: inherit;">
+                        <div class="favourite-card-image">
+                            {% if dish.image_url %}
+                            <img src="{{ dish.image_url }}" alt="{{ dish.name }}">
+                            {% else %}
+                            <span class="favourite-card-placeholder">🍜</span>
+                            {% endif %}
+                        </div>
+                        <div class="favourite-card-content">
+                            <div class="favourite-card-name">{{ dish.name }}</div>
+                            <div class="favourite-card-meta">{{ dish.restaurant_name }}</div>
+                            <div class="favourite-card-price">${{ "%.2f"|format(dish.price) }}</div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Favourite Restaurants -->
+            {% if favourite_restaurants %}
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Saved Restaurants
+            </h2>
+            <div class="favourites-grid">
+                {% for restaurant in favourite_restaurants %}
+                <div class="favourite-card" id="restaurant-{{ restaurant.id }}">
+                    <button class="remove-btn" onclick="removeFavourite({{ restaurant.id }}, 'restaurant', event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <a href="{{ url_for('restaurant_detail', id=restaurant.id) }}" style="text-decoration: none; color: inherit;">
+                        <div class="favourite-card-image">
+                            {% if restaurant.image_url %}
+                            <img src="{{ restaurant.image_url }}" alt="{{ restaurant.name }}">
+                            {% else %}
+                            <span class="favourite-card-placeholder">🏪</span>
+                            {% endif %}
+                        </div>
+                        <div class="favourite-card-content">
+                            <div class="favourite-card-name">{{ restaurant.name }}</div>
+                            <div class="favourite-card-meta">{{ restaurant.price_range }}</div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">💔</div>
+                <h2 class="empty-state-title">No favourites yet</h2>
+                <p class="empty-state-text">Start exploring and save dishes and restaurants you love!</p>
+                <a href="{{ url_for('recommend') }}" class="empty-state-btn">Explore Dishes</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+        function removeFavourite(id, type, event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            toggleFavourite(id, type).then(() => {
+                // Remove the card from the page
+                const card = document.getElementById(type + '-' + id);
+                if (card) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

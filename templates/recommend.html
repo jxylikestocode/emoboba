@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EmoBoba - {{ mood|capitalize }} Recommendations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      body {
+        overflow: hidden;
+        height: 100vh;
+      }
+
+      .recommend-page {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Decorative clouds - actual cloud shapes */
+      .cloud {
+        position: absolute;
+        width: 120px;
+        height: 40px;
+        background: rgba(255, 210, 170, 0.6);
+        border-radius: 50px;
+      }
+      .cloud::before,
+      .cloud::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 210, 170, 0.6);
+        border-radius: 50%;
+      }
+      .cloud::before {
+        width: 50px;
+        height: 50px;
+        top: -25px;
+        left: 20px;
+      }
+      .cloud::after {
+        width: 70px;
+        height: 70px;
+        top: -35px;
+        left: 50px;
+      }
+      .cloud-1 {
+        top: 8%;
+        right: 5%;
+        transform: scale(1.2);
+      }
+      .cloud-2 {
+        top: 12%;
+        right: 18%;
+        transform: scale(0.8);
+      }
+      .cloud-3 {
+        bottom: 12%;
+        right: 3%;
+        transform: scale(1);
+      }
+      .cloud-4 {
+        bottom: 18%;
+        right: 12%;
+        transform: scale(0.7);
+      }
+
+      /* Sparkle decorations */
+      .sparkle {
+        position: absolute;
+        color: rgba(255, 230, 200, 0.9);
+        font-size: 24px;
+        text-shadow: 0 0 10px rgba(255, 200, 150, 0.5);
+      }
+      .sparkle-1 {
+        bottom: 8%;
+        right: 4%;
+        font-size: 28px;
+      }
+      .sparkle-2 {
+        bottom: 5%;
+        right: 25%;
+        font-size: 18px;
+      }
+      .sparkle-3 {
+        top: 25%;
+        left: 3%;
+        font-size: 20px;
+      }
+      .sparkle-4 {
+        top: 5%;
+        right: 30%;
+        font-size: 16px;
+      }
+
+      /* Left side - Mood mascot section */
+      .mood-section {
+        position: absolute;
+        left: 8%;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10;
+      }
+
+      .mood-mascot-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .mood-arrow {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #8b6914;
+        font-size: 40px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+      }
+      .mood-arrow:hover {
+        opacity: 1;
+      }
+
+      .mood-mascot {
+        width: 150px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 120px;
+      }
+
+      .mood-label {
+        margin-top: 15px;
+        background: rgba(255, 248, 240, 0.95);
+        padding: 12px 32px;
+        border-radius: 50px;
+        font-family: "Playfair Display", serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: #d44a2a;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Center - Card carousel */
+      .carousel-container {
+        position: relative;
+        width: 60%;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1000px;
+      }
+
+      .carousel-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .dish-card {
+        position: absolute;
+        width: 380px;
+        background: rgba(180, 140, 100, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 30px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        transition: all 0.5s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .dish-card.center {
+        z-index: 3;
+        transform: scale(1) translateX(0);
+      }
+
+      .dish-card.left {
+        z-index: 1;
+        transform: scale(0.9) translateX(-55%);
+        opacity: 0.85;
+        filter: blur(1px);
+      }
+
+      .dish-card.right {
+        z-index: 1;
+        transform: scale(0.9) translateX(55%);
+        opacity: 0.85;
+        filter: blur(1px);
+      }
+
+      .dish-card.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .dish-card-title {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #c41e3a;
+        margin-bottom: 5px;
+      }
+
+      .dish-card-price {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .dish-card-images {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .dish-card-thumb {
+        flex: 1;
+        height: 100px;
+        border-radius: 15px;
+        overflow: hidden;
+        border: 3px solid #c41e3a;
+      }
+
+      .dish-card-thumb.main {
+        flex: 2;
+        height: 220px;
+      }
+
+      .dish-card-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .dish-card-description {
+        margin-bottom: 20px;
+      }
+
+      .dish-card-description h4 {
+        font-family: "Poppins", sans-serif;
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .dish-card-description p {
+        font-family: "Poppins", sans-serif;
+        font-size: 13px;
+        color: #555;
+        line-height: 1.4;
+      }
+
+      .dish-card-actions {
+        display: flex;
+        gap: 15px;
+        color: #666;
+      }
+
+      .dish-card-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        font-size: 20px;
+        transition: color 0.2s;
+      }
+
+      .dish-card-actions button:hover {
+        color: #c41e3a;
+      }
+
+      @media (max-width: 900px) {
+        .mood-section {
+          position: relative;
+          left: auto;
+          top: auto;
+          transform: none;
+          margin-bottom: 20px;
+        }
+        .recommend-page {
+          flex-direction: column;
+          padding-top: 100px;
+        }
+        .carousel-container {
+          width: 90%;
+        }
+        .dish-card {
+          width: 280px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-logo">
+        <a
+          href="{{ url_for('home') }}"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+          "
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="8" cy="8" r="3" />
+            <circle cx="16" cy="8" r="3" />
+            <circle cx="12" cy="16" r="3" />
+          </svg>
+          <span class="logo-text">EMOBOBA</span>
+        </a>
+      </div>
+      <!-- <div class="nav-links">
+          <a href="{{ url_for('home') }}" class="nav-link active">Home</a>
+          <a href="{{ url_for('favourites') }}" class="nav-link">Favourites</a>
+        </div> -->
+      <div class="nav-icons">
+        <button class="nav-icon-btn">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </button>
+        <a href="{{ url_for('favourites') }}" class="nav-icon-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+        </a>
+        {% if session.user_id %}
+        <a href="{{ url_for('logout') }}" class="nav-icon-btn" title="Logout">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 1 0-16 0" />
+          </svg>
+        </a>
+        {% else %}
+        <a href="{{ url_for('login') }}" class="nav-icon-btn" title="Login">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 1 0-16 0" />
+          </svg>
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="recommend-page">
+      <!-- Decorative elements -->
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+      <div class="cloud cloud-4"></div>
+      <div class="sparkle sparkle-1">✦</div>
+      <div class="sparkle sparkle-2">✦</div>
+      <div class="sparkle sparkle-3">✦</div>
+      <div class="sparkle sparkle-4">✦</div>
+
+      <!-- Left side - Mood indicator -->
+      <div class="mood-section">
+        <div class="mood-mascot-container">
+          <button class="mood-arrow" id="prev-mood">«</button>
+          <div class="mood-mascot">
+            {% if mood == 'happy' %}🐯{% elif mood == 'sad' %}🐻{% elif mood ==
+            'angry' %}🦁{% else %}🐰{% endif %}
+          </div>
+          <button class="mood-arrow" id="next-mood">»</button>
+        </div>
+        <div class="mood-label">{{ mood }}</div>
+      </div>
+
+      <!-- Center - Card carousel -->
+      <div class="carousel-container">
+        <div class="carousel-wrapper" id="carousel">
+          <!-- Cards will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+      const currentMood = "{{ mood }}";
+      const moods = ["happy", "sad", "angry", "fear"];
+      let dishes = [];
+      let currentIndex = 0;
+
+      // Mood navigation
+      document.getElementById("prev-mood").addEventListener("click", () => {
+        const currentIdx = moods.indexOf(currentMood);
+        const prevIdx = (currentIdx - 1 + moods.length) % moods.length;
+        window.location.href = "/recommend?mood=" + moods[prevIdx];
+      });
+
+      document.getElementById("next-mood").addEventListener("click", () => {
+        const currentIdx = moods.indexOf(currentMood);
+        const nextIdx = (currentIdx + 1) % moods.length;
+        window.location.href = "/recommend?mood=" + moods[nextIdx];
+      });
+
+      // Fetch dishes and render carousel
+      fetch("/api/dishes?mood=" + currentMood)
+        .then((response) => response.json())
+        .then((data) => {
+          dishes = data;
+          renderCarousel();
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+
+      function renderCarousel() {
+        const carousel = document.getElementById("carousel");
+        carousel.innerHTML = "";
+
+        if (dishes.length === 0) {
+          carousel.innerHTML =
+            '<p style="color: #666;">No dishes found for this mood.</p>';
+          return;
+        }
+
+        dishes.forEach((dish, index) => {
+          const card = document.createElement("a");
+          card.href = "/dish/" + dish.id;
+          card.className = "dish-card";
+          card.dataset.index = index;
+
+          // Click handler to bring card to front
+          card.addEventListener("click", (e) => {
+            const cardIndex = parseInt(card.dataset.index);
+            if (cardIndex !== currentIndex) {
+              e.preventDefault();
+              currentIndex = cardIndex;
+              updateCarouselPositions();
+            }
+          });
+
+          card.innerHTML = `
+            <div class="dish-card-title">${dish.name}</div>
+            <div class="dish-card-price">Price ${parseFloat(dish.price).toFixed(
+              0
+            )}</div>
+            <div class="dish-card-images">
+              <div class="dish-card-thumb main">
+                ${
+                  dish.image_url
+                    ? `<img src="${dish.image_url}" alt="${dish.name}">`
+                    : ""
+                }
+              </div>
+            </div>
+            <div class="dish-card-description">
+              <h4>${dish.hook || "Feeling fired up?"}</h4>
+              <p>${dish.description || "This bowl lets the heat soften."}</p>
+            </div>
+            <div class="dish-card-actions" onclick="event.preventDefault(); event.stopPropagation();">
+              <button onclick="toggleFavourite(${dish.id}, 'dish')">♥</button>
+              <button>↗</button>
+              <button>⋯</button>
+            </div>
+          `;
+          carousel.appendChild(card);
+        });
+
+        updateCarouselPositions();
+      }
+
+      function updateCarouselPositions() {
+        const cards = document.querySelectorAll(".dish-card");
+        cards.forEach((card, index) => {
+          card.classList.remove("left", "center", "right", "hidden");
+
+          const diff = index - currentIndex;
+
+          if (diff === 0) {
+            card.classList.add("center");
+          } else if (
+            diff === -1 ||
+            (currentIndex === 0 && index === dishes.length - 1)
+          ) {
+            card.classList.add("left");
+          } else if (
+            diff === 1 ||
+            (currentIndex === dishes.length - 1 && index === 0)
+          ) {
+            card.classList.add("right");
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+      }
+
+      // Horizontal scroll to control carousel
+      let scrollAccumulator = 0;
+      const scrollThreshold = 50;
+
+      document.querySelector(".carousel-container").addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+
+          // Use deltaX for horizontal scroll, deltaY for vertical scroll (trackpad)
+          const delta =
+            Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          scrollAccumulator += delta;
+
+          if (scrollAccumulator > scrollThreshold) {
+            // Scroll right - next card
+            currentIndex = (currentIndex + 1) % dishes.length;
+            updateCarouselPositions();
+            scrollAccumulator = 0;
+          } else if (scrollAccumulator < -scrollThreshold) {
+            // Scroll left - previous card
+            currentIndex = (currentIndex - 1 + dishes.length) % dishes.length;
+            updateCarouselPositions();
+            scrollAccumulator = 0;
+          }
+        },
+        { passive: false }
+      );
+
+      // Touch swipe support
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      document
+        .querySelector(".carousel-container")
+        .addEventListener("touchstart", (e) => {
+          touchStartX = e.changedTouches[0].screenX;
+        });
+
+      document
+        .querySelector(".carousel-container")
+        .addEventListener("touchend", (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          handleSwipe();
+        });
+
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+
+        if (diff > swipeThreshold) {
+          // Swipe left - next card
+          currentIndex = (currentIndex + 1) % dishes.length;
+          updateCarouselPositions();
+        } else if (diff < -swipeThreshold) {
+          // Swipe right - previous card
+          currentIndex = (currentIndex - 1 + dishes.length) % dishes.length;
+          updateCarouselPositions();
+        }
+      }
+    </script>
+  </body>
+</html>
