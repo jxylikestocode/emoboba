@@ -15,11 +15,16 @@
     />
     <style>
       /* --- GLOBAL & BACKGROUND --- */
-      body {
+      html, body {
         margin: 0;
         padding: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
+        height: auto !important;
+        overflow: visible !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        touch-action: auto !important;
+      }
+      body {
         min-height: 100vh;
         font-family: "Poppins", sans-serif;
         color: #1a1a1a;
