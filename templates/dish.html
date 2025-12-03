@@ -15,11 +15,14 @@
     />
     <style>
       /* --- GLOBAL STYLES --- */
-      body {
+      html, body {
         margin: 0;
         padding: 0;
-        overflow: hidden;
-        height: 100vh;
+        height: auto !important;
+        overflow: visible !important;
+        touch-action: auto !important;
+      }
+      body {
         /* The warm peach/orange gradient from the screenshot */
         background: radial-gradient(
           circle at top left,
@@ -30,11 +33,22 @@
         color: #1f1f1f;
       }
 
+      /* Desktop: fixed viewport */
+      @media (min-width: 901px) {
+        html, body {
+          overflow: hidden !important;
+          height: 100vh !important;
+        }
+        .dish-page {
+          height: 100vh;
+        }
+      }
+
       /* --- LAYOUT CONTAINER --- */
       .dish-page {
         position: relative;
         width: 100%;
-        height: 100vh;
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -339,14 +353,10 @@
 
       /* --- RESPONSIVE --- */
       @media (max-width: 900px) {
-        body {
-          overflow-y: auto;
-          height: auto;
-        }
         .dish-page {
           flex-direction: column;
           padding: 100px 20px 40px;
-          height: auto;
+          align-items: stretch;
         }
         .dish-image-section {
           width: 100%;
